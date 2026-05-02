@@ -25,7 +25,10 @@ export default function CardLayout() {
   }
 
   return (
-    <section className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+    <section
+      className="mx-auto w-full max-w-6xl px-4 py-10 scroll-mt-5 sm:px-6 lg:px-8"
+      id="card-layout"
+    >
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
           Featured Products
@@ -36,17 +39,17 @@ export default function CardLayout() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      {items.map((item) => (
-        <Card
-          key={item._id}
-          name={item.product_name}
-          imgUrl={item.product_image}
-          price={item.price}
-          discount={item.discount}
-          stock={item.stock}
-          views={item.views}
-        />
-      ))}
+        {items.map((item) => (
+          <Card
+            key={item._id}
+            name={item.product_name}
+            imgUrl={item.product_image}
+            price={item.price}
+            discount={item.discount}
+            stock={item.stock}
+            views={item.views}
+          />
+        ))}
       </div>
     </section>
   );
