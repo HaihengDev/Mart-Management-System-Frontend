@@ -11,7 +11,10 @@ export default function useLoadProducts() {
 
     const loadProducts = async () => {
       try {
-        const data = await fetchData(import.meta.env.VITE_API_KEY);
+        const data = await fetchData(
+          import.meta.env.VITE_API_KEY,
+          '/api/products',
+        );
         if (!isMounted) return;
         setItems(Array.isArray(data) ? data : []);
       } catch (err) {
