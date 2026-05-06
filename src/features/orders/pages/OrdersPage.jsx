@@ -4,7 +4,11 @@ import { DataState } from "../../../components/ui/DataState";
 import { PageCard } from "../../../components/ui/PageCard";
 import { getToken } from "../../../utils/storage";
 
-const createEmptyItem = () => ({ product_id: "", quantity: 1, discount: 0 });
+const createOrderItem = (productId, discount = 0) => ({
+  product_id: String(productId),
+  quantity: 1,
+  discount: Number(discount || 0),
+});
 
 function getEmployeeIdFromToken() {
   try {
@@ -21,7 +25,7 @@ export function OrdersPage() {
   const [openCreate, setOpenCreate] = useState(false);
   const [employeeId, setEmployeeId] = useState(getEmployeeIdFromToken());
   const [status, setStatus] = useState("Cash");
-  const [items, setItems] = useState([createEmptyItem()]);
+  const [items, setItems] = useState([]);
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -62,22 +66,22 @@ export function OrdersPage() {
     );
   };
 
-  const onProductChange = (index, productId) => {
-    const selectedProduct = productMap.get(String(productId));
-    setItems((prev) =>
-      prev.map((item, i) =>
-        i === index
-          ? {
-              ...item,
-              product_id: productId,
-              discount: selectedProduct?.discount ?? 0,
-            }
-          : item,
-      ),
-    );
+  const addProductToOrder = (product) => {
+    setItems((prev) => {
+      const existingIndex = prev.findIndex(
+        (item) => String(item.product_id) === String(product.product_id),
+      );
+      if (existingIndex >= 0) {
+        return prev.map((item, index) =>
+          index === existingIndex
+            ? { ...item, quantity: Number(item.quantity) + 1 }
+            : item,
+        );
+      }
+      return [...prev, createOrderItem(product.product_id, product.discount)];
+    });
   };
 
-  const addItem = () => setItems((prev) => [...prev, createEmptyItem()]);
   const removeItem = (index) =>
     setItems((prev) => prev.filter((_, i) => i !== index));
 
@@ -103,7 +107,7 @@ export function OrdersPage() {
       const res = await orderApi.create(payload);
       setMessage(res?.data?.message || "Order created successfully");
       setOpenCreate(false);
-      setItems([createEmptyItem()]);
+      setItems([]);
       await load();
     } catch (err) {
       setError(
@@ -150,72 +154,94 @@ export function OrdersPage() {
               </select>
             </div>
 
-            <div className="space-y-2">
-              {items.map((item, index) => {
-                const selectedProduct = productMap.get(String(item.product_id));
-                return (
-                  <div
-                    key={index}
-                    className="panel-glass grid gap-2 rounded-xl p-3 sm:grid-cols-[2fr_1fr_1fr_auto]"
-                  >
-                    <select
-                      value={item.product_id}
-                      onChange={(e) => onProductChange(index, e.target.value)}
-                      className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            <div className="grid gap-3 lg:grid-cols-2">
+              <section className="panel-glass rounded-xl p-3">
+                <p className="text-main mb-2 text-sm font-semibold">All Products</p>
+                <div className="max-h-96 space-y-2 overflow-y-auto pr-1">
+                  {products.map((product) => (
+                    <div
+                      key={product._id}
+                      className="flex items-center justify-between rounded-lg border border-slate-200 p-2"
                     >
-                      <option value="">Select product</option>
-                      {products.map((p) => (
-                        <option key={p._id} value={p.product_id}>
-                          {p.product_name} (Stock: {p.stock})
-                        </option>
-                      ))}
-                    </select>
-                    <input
-                      type="number"
-                      min="1"
-                      value={item.quantity}
-                      onChange={(e) =>
-                        updateItem(index, "quantity", e.target.value)
-                      }
-                      placeholder="Qty"
-                      className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                    />
-                    <input
-                      type="number"
-                      min="0"
-                      max="100"
-                      value={item.discount}
-                      onChange={(e) =>
-                        updateItem(index, "discount", e.target.value)
-                      }
-                      placeholder="Discount %"
-                      className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeItem(index)}
-                      className="rounded-lg bg-rose-600 px-3 py-2 text-xs font-semibold text-white"
-                    >
-                      Remove
-                    </button>
-                    {selectedProduct ? (
-                      <p className="text-soft text-xs sm:col-span-4">
-                        Unit price: {selectedProduct.price}
-                      </p>
-                    ) : null}
-                  </div>
-                );
-              })}
+                      <div>
+                        <p className="text-main text-sm font-medium">
+                          {product.product_name}
+                        </p>
+                        <p className="text-soft text-xs">
+                          Stock: {product.stock} | Price: {product.price}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => addProductToOrder(product)}
+                        className="rounded-lg btn-primary px-3 py-1.5 text-xs font-semibold text-white"
+                      >
+                        Add
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section className="panel-glass rounded-xl p-3">
+                <p className="text-main mb-2 text-sm font-semibold">Order Items</p>
+                <div className="space-y-2">
+                  {items.map((item, index) => {
+                    const selectedProduct = productMap.get(String(item.product_id));
+                    return (
+                      <div
+                        key={`${item.product_id}-${index}`}
+                        className="grid gap-2 rounded-lg border border-slate-200 p-2 sm:grid-cols-[2fr_1fr_1fr_auto]"
+                      >
+                        <div>
+                          <p className="text-main text-sm font-medium">
+                            {selectedProduct?.product_name || "Unknown product"}
+                          </p>
+                          <p className="text-soft text-xs">
+                            Unit price: {selectedProduct?.price ?? 0}
+                          </p>
+                        </div>
+                        <input
+                          type="number"
+                          min="1"
+                          value={item.quantity}
+                          onChange={(e) =>
+                            updateItem(index, "quantity", e.target.value)
+                          }
+                          placeholder="Qty"
+                          className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                        />
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={item.discount}
+                          onChange={(e) =>
+                            updateItem(index, "discount", e.target.value)
+                          }
+                          placeholder="Discount %"
+                          className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeItem(index)}
+                          className="rounded-lg bg-rose-600 px-3 py-2 text-xs font-semibold text-white"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    );
+                  })}
+                  {items.length === 0 ? (
+                    <p className="text-soft text-xs">
+                      No products added yet. Click `Add` from the product list.
+                    </p>
+                  ) : null}
+                </div>
+              </section>
             </div>
 
             <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={addItem}
-                className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
-              >
-                Add Item
-              </button>
               <button
                 disabled={saving}
                 className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white"

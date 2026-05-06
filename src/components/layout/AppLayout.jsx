@@ -1,6 +1,8 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
+import { useState } from "react";
 import { useAuth } from "../../features/auth/components/AuthContext";
 import { useTheme } from "../../app/ThemeContext";
+import { ConfirmPanel } from "../ui/ConfirmPanel";
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard" },
@@ -15,6 +17,7 @@ export function AppLayout() {
   const { pathname } = useLocation();
   const { user, isAdmin, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const [confirmLogout, setConfirmLogout] = useState(false);
   const displayName = user?.employee_name || user?.username;
 
   return (
@@ -42,7 +45,7 @@ export function AppLayout() {
               </p>
             </div>
             <button
-              onClick={logout}
+              onClick={() => setConfirmLogout(true)}
               className="btn-primary rounded-lg px-3 py-2 text-sm font-medium transition hover:brightness-110"
             >
               Logout
@@ -76,6 +79,18 @@ export function AppLayout() {
           <Outlet />
         </main>
       </div>
+      <ConfirmPanel
+        open={confirmLogout}
+        title="Logout now?"
+        message="You will be signed out from this session."
+        confirmLabel="Yes, logout"
+        tone="warning"
+        onCancel={() => setConfirmLogout(false)}
+        onConfirm={() => {
+          setConfirmLogout(false);
+          logout();
+        }}
+      />
     </div>
   );
 }
