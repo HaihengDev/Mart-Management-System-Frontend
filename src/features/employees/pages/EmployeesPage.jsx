@@ -1,16 +1,16 @@
-import { useEffect, useState } from "react";
-import { employeeApi } from "../../../services/endpoints";
-import { DataState } from "../../../components/ui/DataState";
-import { PageCard } from "../../../components/ui/PageCard";
-import { ConfirmPanel } from "../../../components/ui/ConfirmPanel";
-import { useAuth } from "../../auth/components/AuthContext";
-import { getToken } from "../../../utils/storage";
+import { useEffect, useState } from 'react';
+import { employeeApi } from '../../../services/endpoints';
+import { DataState } from '../../../components/ui/DataState';
+import { PageCard } from '../../../components/ui/PageCard';
+import { ConfirmPanel } from '../../../components/ui/ConfirmPanel';
+import { useAuth } from '../../auth/components/AuthContext';
+import { getToken } from '../../../utils/storage';
 
 const defaultForm = {
-  employee_name: "",
-  gender: "Male",
-  position: "employee",
-  salary: "",
+  employee_name: '',
+  gender: 'Male',
+  position: 'employee',
+  salary: '',
 };
 
 export function EmployeesPage() {
@@ -18,15 +18,15 @@ export function EmployeesPage() {
   const [openCreate, setOpenCreate] = useState(false);
   const [form, setForm] = useState(defaultForm);
   const [file, setFile] = useState(null);
-  const [filePreview, setFilePreview] = useState("");
-  const [editId, setEditId] = useState("");
+  const [filePreview, setFilePreview] = useState('');
+  const [editId, setEditId] = useState('');
   const [editForm, setEditForm] = useState(defaultForm);
   const [editFile, setEditFile] = useState(null);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
   const [oneTimeCredential, setOneTimeCredential] = useState(null);
   const [confirmAction, setConfirmAction] = useState(null);
 
@@ -34,14 +34,16 @@ export function EmployeesPage() {
     try {
       const token = getToken();
       if (!token) return {};
-      return JSON.parse(atob(token.split(".")[1])) || {};
+      return JSON.parse(atob(token.split('.')[1])) || {};
     } catch {
       return {};
     }
   };
 
   const normalizeValue = (value) =>
-    value === undefined || value === null ? "" : String(value).trim().toLowerCase();
+    value === undefined || value === null
+      ? ''
+      : String(value).trim().toLowerCase();
 
   const currentIdentitySet = (() => {
     const payload = getTokenPayload();
@@ -76,17 +78,19 @@ export function EmployeesPage() {
     ]
       .map(normalizeValue)
       .filter(Boolean);
-    return employeeIdentityValues.some((value) => currentIdentitySet.has(value));
+    return employeeIdentityValues.some((value) =>
+      currentIdentitySet.has(value),
+    );
   };
 
   const load = async () => {
     setLoading(true);
-    setError("");
+    setError('');
     try {
       const { data } = await employeeApi.list();
       setItems(Array.isArray(data) ? data : []);
     } catch (err) {
-      setError(err?.response?.data?.message || "Failed to load employees");
+      setError(err?.response?.data?.message || 'Failed to load employees');
     } finally {
       setLoading(false);
     }
@@ -98,7 +102,7 @@ export function EmployeesPage() {
 
   useEffect(() => {
     if (!file) {
-      setFilePreview("");
+      setFilePreview('');
       return;
     }
     const url = URL.createObjectURL(file);
@@ -106,9 +110,9 @@ export function EmployeesPage() {
     return () => URL.revokeObjectURL(url);
   }, [file]);
 
-  const onChange = (event, target = "create") => {
+  const onChange = (event, target = 'create') => {
     const { name, value } = event.target;
-    if (target === "create") {
+    if (target === 'create') {
       setForm((prev) => ({ ...prev, [name]: value }));
     } else {
       setEditForm((prev) => ({ ...prev, [name]: value }));
@@ -117,28 +121,28 @@ export function EmployeesPage() {
 
   const onCreate = async () => {
     setSaving(true);
-    setError("");
-    setMessage("");
+    setError('');
+    setMessage('');
     setOneTimeCredential(null);
 
     const data = new FormData();
-    data.append("file", file);
-    data.append("employee_name", form.employee_name);
-    data.append("gender", form.gender);
-    data.append("position", form.position);
-    data.append("salary", form.salary);
+    data.append('file', file);
+    data.append('employee_name', form.employee_name);
+    data.append('gender', form.gender);
+    data.append('position', form.position);
+    data.append('salary', form.salary);
 
     try {
       const response = await employeeApi.create(data);
-      setMessage(response?.data?.message || "Employee created successfully");
+      setMessage(response?.data?.message || 'Employee created successfully');
       setOneTimeCredential(response?.data?.user || null);
       setForm(defaultForm);
       setFile(null);
-      setFilePreview("");
+      setFilePreview('');
       setOpenCreate(false);
       await load();
     } catch (err) {
-      setError(err?.response?.data?.message || "Failed to create employee");
+      setError(err?.response?.data?.message || 'Failed to create employee');
     } finally {
       setSaving(false);
     }
@@ -146,23 +150,23 @@ export function EmployeesPage() {
 
   const onUpdate = async (id) => {
     setSaving(true);
-    setMessage("");
-    setError("");
+    setMessage('');
+    setError('');
     const data = new FormData();
-    data.append("employee_name", editForm.employee_name);
-    data.append("gender", editForm.gender);
-    data.append("position", editForm.position);
-    data.append("salary", editForm.salary);
-    if (editFile) data.append("file", editFile);
+    data.append('employee_name', editForm.employee_name);
+    data.append('gender', editForm.gender);
+    data.append('position', editForm.position);
+    data.append('salary', editForm.salary);
+    if (editFile) data.append('file', editFile);
 
     try {
       await employeeApi.update(id, data);
-      setMessage("Employee updated successfully");
-      setEditId("");
+      setMessage('Employee updated successfully');
+      setEditId('');
       setEditFile(null);
       await load();
     } catch (err) {
-      setError(err?.response?.data?.message || "Failed to update employee");
+      setError(err?.response?.data?.message || 'Failed to update employee');
     } finally {
       setSaving(false);
     }
@@ -170,32 +174,32 @@ export function EmployeesPage() {
 
   const onDelete = async (employee) => {
     if (isSelfEmployee(employee)) {
-      setError("You cannot delete your own account.");
+      setError('You cannot delete your own account.');
       return;
     }
-    setMessage("");
-    setError("");
+    setMessage('');
+    setError('');
     try {
       await employeeApi.remove(employee._id);
-      setMessage("Employee deleted successfully");
+      setMessage('Employee deleted successfully');
       await load();
     } catch (err) {
-      setError(err?.response?.data?.message || "Failed to delete employee");
+      setError(err?.response?.data?.message || 'Failed to delete employee');
     }
   };
 
   const onCreateSubmit = (event) => {
     event.preventDefault();
     if (!file) {
-      setError("Employee image is required");
+      setError('Employee image is required');
       return;
     }
     setConfirmAction({
-      type: "create",
-      title: "Create employee?",
+      type: 'create',
+      title: 'Create employee?',
       message: `This will create a new employee "${form.employee_name}".`,
-      confirmLabel: "Yes, create",
-      tone: "warning",
+      confirmLabel: 'Yes, create',
+      tone: 'warning',
     });
   };
 
@@ -205,11 +209,11 @@ export function EmployeesPage() {
     if (!confirmAction) return;
     const action = confirmAction;
     closeConfirm();
-    if (action.type === "create") {
+    if (action.type === 'create') {
       await onCreate();
       return;
     }
-    if (action.type === "update") {
+    if (action.type === 'update') {
       await onUpdate(action.id);
       return;
     }
@@ -218,15 +222,12 @@ export function EmployeesPage() {
 
   return (
     <div className="space-y-4">
-      <PageCard
-        title="Employee Management"
-        subtitle="Create, update, and delete employees"
-      >
+      <PageCard title="Employee Management" subtitle="">
         <button
           onClick={() => setOpenCreate((prev) => !prev)}
           className="rounded-xl btn-primary px-4 py-2 text-sm font-semibold text-white"
         >
-          {openCreate ? "Close Create Form" : "Add Employee"}
+          {openCreate ? 'Close Create Form' : 'Add Employee'}
         </button>
 
         {openCreate ? (
@@ -290,7 +291,7 @@ export function EmployeesPage() {
               disabled={saving}
               className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white sm:col-span-2"
             >
-              {saving ? "Saving..." : "Save"}
+              {saving ? 'Saving...' : 'Save'}
             </button>
           </form>
         ) : null}
@@ -320,128 +321,132 @@ export function EmployeesPage() {
       <PageCard title="Employees" subtitle="List with employee image">
         <DataState loading={loading} error={error} empty={items.length === 0}>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {items.filter((employee) => !isSelfEmployee(employee)).map((employee) => (
-              <article
-                key={employee._id}
-                className="rounded-xl border border-slate-200 bg-white p-3"
-              >
-                <img
-                  src={employee.employee_image}
-                  alt={employee.employee_name}
-                  className="h-44 w-full rounded-lg object-cover"
-                />
-                <h3 className="mt-3 text-base font-semibold text-slate-900">
-                  {employee.employee_name}
-                </h3>
-                <p className="text-sm text-slate-600">
-                  Role: {employee.position}
-                </p>
-                <p className="text-sm text-slate-600">
-                  Gender: {employee.gender}
-                </p>
-                <p className="text-sm text-slate-600">
-                  Salary: {employee.salary}
-                </p>
-                <div className="mt-2 flex gap-2">
-                  <button
-                    onClick={() => {
-                      setEditId(employee._id);
-                      setEditForm({
-                        employee_name: employee.employee_name || "",
-                        gender: employee.gender || "Male",
-                        position: employee.position || "employee",
-                        salary: String(employee.salary || ""),
-                      });
-                    }}
-                    className="rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() =>
-                      setConfirmAction({
-                        type: "delete",
-                        employee,
-                        title: "Delete employee?",
-                        message: `This action will permanently remove "${employee.employee_name}".`,
-                        confirmLabel: "Yes, delete",
-                        tone: "danger",
-                      })
-                    }
-                    className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white"
-                  >
-                    Delete
-                  </button>
-                </div>
-                {editId === employee._id ? (
-                  <div className="mt-2 grid gap-2 border-t border-slate-200 pt-2">
-                    <input
-                      name="employee_name"
-                      value={editForm.employee_name}
-                      onChange={(e) => onChange(e, "edit")}
-                      className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
-                    />
-                    <input
-                      name="salary"
-                      type="number"
-                      value={editForm.salary}
-                      onChange={(e) => onChange(e, "edit")}
-                      className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
-                    />
-                    <select
-                      name="gender"
-                      value={editForm.gender}
-                      onChange={(e) => onChange(e, "edit")}
-                      className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
+            {items
+              .filter((employee) => !isSelfEmployee(employee))
+              .map((employee) => (
+                <article
+                  key={employee._id}
+                  className="rounded-xl border border-slate-200 bg-white p-3"
+                >
+                  <img
+                    src={employee.employee_image}
+                    alt={employee.employee_name}
+                    className="h-44 w-full rounded-lg object-cover"
+                  />
+                  <h3 className="mt-3 text-base font-semibold text-slate-900">
+                    {employee.employee_name}
+                  </h3>
+                  <p className="text-sm text-slate-600">
+                    Role: {employee.position}
+                  </p>
+                  <p className="text-sm text-slate-600">
+                    Gender: {employee.gender}
+                  </p>
+                  <p className="text-sm text-slate-600">
+                    Salary: {employee.salary}
+                  </p>
+                  <div className="mt-2 flex gap-2">
+                    <button
+                      onClick={() => {
+                        setEditId(employee._id);
+                        setEditForm({
+                          employee_name: employee.employee_name || '',
+                          gender: employee.gender || 'Male',
+                          position: employee.position || 'employee',
+                          salary: String(employee.salary || ''),
+                        });
+                      }}
+                      className="rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white"
                     >
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
-                    </select>
-                    <select
-                      name="position"
-                      value={editForm.position}
-                      onChange={(e) => onChange(e, "edit")}
-                      className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
+                      Edit
+                    </button>
+                    <button
+                      onClick={() =>
+                        setConfirmAction({
+                          type: 'delete',
+                          employee,
+                          title: 'Delete employee?',
+                          message: `This action will permanently remove "${employee.employee_name}".`,
+                          confirmLabel: 'Yes, delete',
+                          tone: 'danger',
+                        })
+                      }
+                      className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white"
                     >
-                      <option value="employee">Employee</option>
-                      <option value="admin">Admin</option>
-                    </select>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => setEditFile(e.target.files?.[0] || null)}
-                      className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
-                    />
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() =>
-                          setConfirmAction({
-                            type: "update",
-                            id: employee._id,
-                            title: "Update employee?",
-                            message: `This will save changes for "${employee.employee_name}".`,
-                            confirmLabel: "Yes, update",
-                            tone: "warning",
-                          })
-                        }
-                        className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white"
-                      >
-                        Update
-                      </button>
-                      <button
-                        onClick={() => {
-                          setEditId("");
-                          setEditFile(null);
-                        }}
-                        className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
-                      >
-                        Cancel
-                      </button>
-                    </div>
+                      Delete
+                    </button>
                   </div>
-                ) : null}
-              </article>
-            ))}
+                  {editId === employee._id ? (
+                    <div className="mt-2 grid gap-2 border-t border-slate-200 pt-2">
+                      <input
+                        name="employee_name"
+                        value={editForm.employee_name}
+                        onChange={(e) => onChange(e, 'edit')}
+                        className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
+                      />
+                      <input
+                        name="salary"
+                        type="number"
+                        value={editForm.salary}
+                        onChange={(e) => onChange(e, 'edit')}
+                        className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
+                      />
+                      <select
+                        name="gender"
+                        value={editForm.gender}
+                        onChange={(e) => onChange(e, 'edit')}
+                        className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
+                      >
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                      </select>
+                      <select
+                        name="position"
+                        value={editForm.position}
+                        onChange={(e) => onChange(e, 'edit')}
+                        className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
+                      >
+                        <option value="employee">Employee</option>
+                        <option value="admin">Admin</option>
+                      </select>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) =>
+                          setEditFile(e.target.files?.[0] || null)
+                        }
+                        className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() =>
+                            setConfirmAction({
+                              type: 'update',
+                              id: employee._id,
+                              title: 'Update employee?',
+                              message: `This will save changes for "${employee.employee_name}".`,
+                              confirmLabel: 'Yes, update',
+                              tone: 'warning',
+                            })
+                          }
+                          className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white"
+                        >
+                          Update
+                        </button>
+                        <button
+                          onClick={() => {
+                            setEditId('');
+                            setEditFile(null);
+                          }}
+                          className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
+                </article>
+              ))}
           </div>
         </DataState>
       </PageCard>

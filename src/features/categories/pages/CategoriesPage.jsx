@@ -1,30 +1,33 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { categoryApi } from "../../../services/endpoints";
-import { DataState } from "../../../components/ui/DataState";
-import { PageCard } from "../../../components/ui/PageCard";
-import { ConfirmPanel } from "../../../components/ui/ConfirmPanel";
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { categoryApi } from '../../../services/endpoints';
+import { DataState } from '../../../components/ui/DataState';
+import { PageCard } from '../../../components/ui/PageCard';
+import { ConfirmPanel } from '../../../components/ui/ConfirmPanel';
+import { useAuth } from '../../auth/components/AuthContext';
 
 export function CategoriesPage() {
+  const { user } = useAuth();
+  const isEmployee = user?.role === 'employee';
   const [openCreate, setOpenCreate] = useState(false);
-  const [name, setName] = useState("");
-  const [editId, setEditId] = useState("");
-  const [editName, setEditName] = useState("");
+  const [name, setName] = useState('');
+  const [editId, setEditId] = useState('');
+  const [editName, setEditName] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
   const [items, setItems] = useState([]);
   const [confirmAction, setConfirmAction] = useState(null);
 
   const load = async () => {
     setLoading(true);
-    setError("");
+    setError('');
     try {
       const { data } = await categoryApi.list();
       setItems(Array.isArray(data) ? data : []);
     } catch (err) {
-      setError(err?.response?.data?.message || "Failed to load categories");
+      setError(err?.response?.data?.message || 'Failed to load categories');
     } finally {
       setLoading(false);
     }
@@ -36,16 +39,16 @@ export function CategoriesPage() {
 
   const onCreate = async () => {
     setSaving(true);
-    setMessage("");
-    setError("");
+    setMessage('');
+    setError('');
     try {
       await categoryApi.create({ category_name: name });
-      setMessage("Category created successfully");
-      setName("");
+      setMessage('Category created successfully');
+      setName('');
       setOpenCreate(false);
       await load();
     } catch (err) {
-      setError(err?.response?.data?.message || "Failed to create category");
+      setError(err?.response?.data?.message || 'Failed to create category');
     } finally {
       setSaving(false);
     }
@@ -54,41 +57,41 @@ export function CategoriesPage() {
   const onUpdate = async (id) => {
     if (!editName.trim()) return;
     setSaving(true);
-    setMessage("");
-    setError("");
+    setMessage('');
+    setError('');
     try {
       await categoryApi.update(id, { category_name: editName });
-      setMessage("Category updated successfully");
-      setEditId("");
-      setEditName("");
+      setMessage('Category updated successfully');
+      setEditId('');
+      setEditName('');
       await load();
     } catch (err) {
-      setError(err?.response?.data?.message || "Failed to update category");
+      setError(err?.response?.data?.message || 'Failed to update category');
     } finally {
       setSaving(false);
     }
   };
 
   const onDelete = async (id) => {
-    setError("");
-    setMessage("");
+    setError('');
+    setMessage('');
     try {
       await categoryApi.remove(id);
-      setMessage("Category deleted successfully");
+      setMessage('Category deleted successfully');
       await load();
     } catch (err) {
-      setError(err?.response?.data?.message || "Failed to delete category");
+      setError(err?.response?.data?.message || 'Failed to delete category');
     }
   };
 
   const onCreateSubmit = (event) => {
     event.preventDefault();
     setConfirmAction({
-      type: "create",
-      title: "Create category?",
+      type: 'create',
+      title: 'Create category?',
       message: `This will create a new category "${name}".`,
-      confirmLabel: "Yes, create",
-      tone: "warning",
+      confirmLabel: 'Yes, create',
+      tone: 'warning',
     });
   };
 
@@ -98,11 +101,11 @@ export function CategoriesPage() {
     if (!confirmAction) return;
     const action = confirmAction;
     closeConfirm();
-    if (action.type === "create") {
+    if (action.type === 'create') {
       await onCreate();
       return;
     }
-    if (action.type === "update") {
+    if (action.type === 'update') {
       await onUpdate(action.id);
       return;
     }
@@ -111,36 +114,37 @@ export function CategoriesPage() {
 
   return (
     <div className="space-y-4">
-      <PageCard
-        title="Category Management"
-        subtitle="Create, update, and delete categories"
-      >
-        <button
-          onClick={() => setOpenCreate((prev) => !prev)}
-          className="rounded-xl btn-primary px-4 py-2 text-sm font-semibold text-white"
-        >
-          {openCreate ? "Close Create Form" : "Create Category"}
-        </button>
-
-        {openCreate ? (
-          <form
-            onSubmit={onCreateSubmit}
-            className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto]"
-          >
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Category name"
-              className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm"
-              required
-            />
+      <PageCard title="Category Management" subtitle="">
+        {!isEmployee ? (
+          <>
             <button
-              disabled={saving}
-              className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white"
+              onClick={() => setOpenCreate((prev) => !prev)}
+              className="rounded-xl btn-primary px-4 py-2 text-sm font-semibold text-white"
             >
-              {saving ? "Creating..." : "Save"}
+              {openCreate ? 'Close Create Form' : 'Create Category'}
             </button>
-          </form>
+
+            {openCreate ? (
+              <form
+                onSubmit={onCreateSubmit}
+                className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto]"
+              >
+                <input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Category name"
+                  className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm"
+                  required
+                />
+                <button
+                  disabled={saving}
+                  className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white"
+                >
+                  {saving ? 'Creating...' : 'Save'}
+                </button>
+              </form>
+            ) : null}
+          </>
         ) : null}
 
         {message ? (
@@ -165,7 +169,7 @@ export function CategoriesPage() {
                     ID: {item.category_id}
                   </p>
                 </div>
-                {editId === item._id ? (
+                {!isEmployee && editId === item._id ? (
                   <div className="flex gap-2">
                     <input
                       value={editName}
@@ -175,12 +179,12 @@ export function CategoriesPage() {
                     <button
                       onClick={() =>
                         setConfirmAction({
-                          type: "update",
+                          type: 'update',
                           id: item._id,
-                          title: "Update category?",
+                          title: 'Update category?',
                           message: `This will save changes for "${item.category_name}".`,
-                          confirmLabel: "Yes, update",
-                          tone: "warning",
+                          confirmLabel: 'Yes, update',
+                          tone: 'warning',
                         })
                       }
                       className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white"
@@ -188,7 +192,7 @@ export function CategoriesPage() {
                       Update
                     </button>
                     <button
-                      onClick={() => setEditId("")}
+                      onClick={() => setEditId('')}
                       className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
                     >
                       Cancel
@@ -202,30 +206,34 @@ export function CategoriesPage() {
                     >
                       View Full
                     </Link>
-                    <button
-                      onClick={() => {
-                        setEditId(item._id);
-                        setEditName(item.category_name || "");
-                      }}
-                      className="rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() =>
-                        setConfirmAction({
-                          type: "delete",
-                          id: item._id,
-                          title: "Delete category?",
-                          message: `This action will permanently remove "${item.category_name}".`,
-                          confirmLabel: "Yes, delete",
-                          tone: "danger",
-                        })
-                      }
-                      className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white"
-                    >
-                      Delete
-                    </button>
+                    {!isEmployee ? (
+                      <>
+                        <button
+                          onClick={() => {
+                            setEditId(item._id);
+                            setEditName(item.category_name || '');
+                          }}
+                          className="rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() =>
+                            setConfirmAction({
+                              type: 'delete',
+                              id: item._id,
+                              title: 'Delete category?',
+                              message: `This action will permanently remove "${item.category_name}".`,
+                              confirmLabel: 'Yes, delete',
+                              tone: 'danger',
+                            })
+                          }
+                          className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white"
+                        >
+                          Delete
+                        </button>
+                      </>
+                    ) : null}
                   </div>
                 )}
               </div>

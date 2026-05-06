@@ -8,6 +8,7 @@ import {
 import { DataState } from '../../../components/ui/DataState';
 import { PageCard } from '../../../components/ui/PageCard';
 import { ConfirmPanel } from '../../../components/ui/ConfirmPanel';
+import { useAuth } from '../../auth/components/AuthContext';
 
 const defaultForm = {
   product_name: '',
@@ -20,6 +21,8 @@ const defaultForm = {
 };
 
 export function ProductsPage() {
+  const { user } = useAuth();
+  const isEmployee = user?.role === 'employee';
   const [openCreate, setOpenCreate] = useState(false);
   const [form, setForm] = useState(defaultForm);
   const [file, setFile] = useState(null);
@@ -209,115 +212,116 @@ export function ProductsPage() {
 
   return (
     <div className="space-y-4">
-      <PageCard
-        title="Product Management"
-        subtitle="Create, update, and delete products"
-      >
-        <button
-          onClick={() => setOpenCreate((prev) => !prev)}
-          className="rounded-xl btn-primary px-4 py-2 text-sm font-semibold text-white"
-        >
-          {openCreate ? 'Close Create Form' : 'Create Product'}
-        </button>
-        {openCreate ? (
-          <form
-            onSubmit={onCreateSubmit}
-            className="mt-3 grid gap-3 sm:grid-cols-2"
-          >
-            <input
-              name="product_name"
-              value={form.product_name}
-              onChange={onChange}
-              placeholder="Product name"
-              className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm"
-              required
-            />
-            <input
-              name="price"
-              type="number"
-              value={form.price}
-              onChange={onChange}
-              placeholder="Price"
-              className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm"
-              required
-            />
-            <input
-              name="stock"
-              type="number"
-              value={form.stock}
-              onChange={onChange}
-              placeholder="Stock"
-              className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm"
-              required
-            />
-            <input
-              name="discount"
-              type="number"
-              value={form.discount}
-              onChange={onChange}
-              placeholder="Discount"
-              className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm"
-            />
-            <input
-              name="expiry_date"
-              type="date"
-              value={form.expiry_date}
-              onChange={onChange}
-              className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm"
-              required
-            />
-            <select
-              name="category_id"
-              value={form.category_id}
-              onChange={onChange}
-              className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm"
-              required
-            >
-              <option value="">Select category</option>
-              {categories.map((item) => (
-                <option key={item._id} value={item.category_id}>
-                  {item.category_name}
-                </option>
-              ))}
-            </select>
-            <select
-              name="supplier_id"
-              value={form.supplier_id}
-              onChange={onChange}
-              className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm"
-              required
-            >
-              <option value="">Select supplier</option>
-              {suppliers.map((item) => (
-                <option key={item._id} value={item.supplier_id}>
-                  {item.supplier_name}
-                </option>
-              ))}
-            </select>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
-              className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm"
-              required
-            />
-            {filePreview ? (
-              <div className="sm:col-span-2">
-                <p className="mb-1 text-xs text-soft">Image preview</p>
-                <img
-                  src={filePreview}
-                  alt="New product preview"
-                  className="h-40 w-full max-w-xs rounded-xl border border-slate-200 object-cover"
-                />
-              </div>
-            ) : null}
+      <PageCard title="Product Management" subtitle="">
+        {!isEmployee ? (
+          <>
             <button
-              disabled={saving}
-              className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white sm:col-span-2"
+              onClick={() => setOpenCreate((prev) => !prev)}
+              className="rounded-xl btn-primary px-4 py-2 text-sm font-semibold text-white"
             >
-              {saving ? 'Saving...' : 'Save'}
+              {openCreate ? 'Close Create Form' : 'Create Product'}
             </button>
-          </form>
+            {openCreate ? (
+              <form
+                onSubmit={onCreateSubmit}
+                className="mt-3 grid gap-3 sm:grid-cols-2"
+              >
+                <input
+                  name="product_name"
+                  value={form.product_name}
+                  onChange={onChange}
+                  placeholder="Product name"
+                  className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm"
+                  required
+                />
+                <input
+                  name="price"
+                  type="number"
+                  value={form.price}
+                  onChange={onChange}
+                  placeholder="Price"
+                  className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm"
+                  required
+                />
+                <input
+                  name="stock"
+                  type="number"
+                  value={form.stock}
+                  onChange={onChange}
+                  placeholder="Stock"
+                  className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm"
+                  required
+                />
+                <input
+                  name="discount"
+                  type="number"
+                  value={form.discount}
+                  onChange={onChange}
+                  placeholder="Discount"
+                  className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm"
+                />
+                <input
+                  name="expiry_date"
+                  type="date"
+                  value={form.expiry_date}
+                  onChange={onChange}
+                  className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm"
+                  required
+                />
+                <select
+                  name="category_id"
+                  value={form.category_id}
+                  onChange={onChange}
+                  className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm"
+                  required
+                >
+                  <option value="">Select category</option>
+                  {categories.map((item) => (
+                    <option key={item._id} value={item.category_id}>
+                      {item.category_name}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  name="supplier_id"
+                  value={form.supplier_id}
+                  onChange={onChange}
+                  className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm"
+                  required
+                >
+                  <option value="">Select supplier</option>
+                  {suppliers.map((item) => (
+                    <option key={item._id} value={item.supplier_id}>
+                      {item.supplier_name}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setFile(e.target.files?.[0] || null)}
+                  className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm"
+                  required
+                />
+                {filePreview ? (
+                  <div className="sm:col-span-2">
+                    <p className="mb-1 text-xs text-soft">Image preview</p>
+                    <img
+                      src={filePreview}
+                      alt="New product preview"
+                      className="h-40 w-full max-w-xs rounded-xl border border-slate-200 object-cover"
+                    />
+                  </div>
+                ) : null}
+                <button
+                  disabled={saving}
+                  className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white sm:col-span-2"
+                >
+                  {saving ? 'Saving...' : 'Save'}
+                </button>
+              </form>
+            ) : null}
+          </>
         ) : null}
         {message ? (
           <p className="mt-3 text-sm text-emerald-600">{message}</p>
@@ -359,40 +363,47 @@ export function ProductsPage() {
                     >
                       View Full
                     </Link>
-                    <button
-                      onClick={() => {
-                        setEditId(product._id);
-                        setEditForm({
-                          product_name: product.product_name || '',
-                          stock: String(product.stock || ''),
-                          discount: String(product.discount || ''),
-                          price: String(product.price || ''),
-                          expiry_date: (product.expiry_date || '').slice(0, 10),
-                          category_id: String(product.category_id || ''),
-                          supplier_id: String(product.supplier_id || ''),
-                        });
-                      }}
-                      className="rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() =>
-                        setConfirmAction({
-                          type: 'delete',
-                          id: product.product_id,
-                          title: 'Delete product?',
-                          message: `This action will permanently remove "${product.product_name}".`,
-                          confirmLabel: 'Yes, delete',
-                          tone: 'danger',
-                        })
-                      }
-                      className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white"
-                    >
-                      Delete
-                    </button>
+                    {!isEmployee ? (
+                      <>
+                        <button
+                          onClick={() => {
+                            setEditId(product._id);
+                            setEditForm({
+                              product_name: product.product_name || '',
+                              stock: String(product.stock || ''),
+                              discount: String(product.discount || ''),
+                              price: String(product.price || ''),
+                              expiry_date: (product.expiry_date || '').slice(
+                                0,
+                                10,
+                              ),
+                              category_id: String(product.category_id || ''),
+                              supplier_id: String(product.supplier_id || ''),
+                            });
+                          }}
+                          className="rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() =>
+                            setConfirmAction({
+                              type: 'delete',
+                              id: product.product_id,
+                              title: 'Delete product?',
+                              message: `This action will permanently remove "${product.product_name}".`,
+                              confirmLabel: 'Yes, delete',
+                              tone: 'danger',
+                            })
+                          }
+                          className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white"
+                        >
+                          Delete
+                        </button>
+                      </>
+                    ) : null}
                   </div>
-                  {editId === product._id ? (
+                  {!isEmployee && editId === product._id ? (
                     <div className="grid gap-2 border-t border-slate-200 pt-2">
                       <input
                         name="product_name"
