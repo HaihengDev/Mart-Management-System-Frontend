@@ -69,8 +69,13 @@ export function CategoryProductsPage() {
           {products.map((product) => (
             <article
               key={product._id}
-              className="overflow-hidden rounded-xl border border-slate-200 bg-white"
+              className="relative overflow-hidden rounded-xl border border-slate-200 bg-white"
             >
+              {Number(product.discount || 0) > 0 ? (
+                <span className="absolute right-2 top-2 z-10 rounded-full bg-rose-600 px-2 py-1 text-xs font-semibold text-white shadow">
+                  -{Number(product.discount)}%
+                </span>
+              ) : null}
               <img
                 src={product.product_image}
                 alt={product.product_name}
