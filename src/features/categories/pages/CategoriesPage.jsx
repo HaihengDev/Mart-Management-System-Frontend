@@ -33,8 +33,7 @@ export function CategoriesPage() {
     load();
   }, []);
 
-  const onCreate = async (event) => {
-    event.preventDefault();
+  const onCreate = async () => {
     setSaving(true);
     setMessage("");
     setError("");
@@ -81,12 +80,27 @@ export function CategoriesPage() {
     }
   };
 
+  const onCreateSubmit = (event) => {
+    event.preventDefault();
+    setConfirmAction({
+      type: "create",
+      title: "Create category?",
+      message: `This will create a new category "${name}".`,
+      confirmLabel: "Yes, create",
+      tone: "warning",
+    });
+  };
+
   const closeConfirm = () => setConfirmAction(null);
 
   const onConfirmAction = async () => {
     if (!confirmAction) return;
     const action = confirmAction;
     closeConfirm();
+    if (action.type === "create") {
+      await onCreate();
+      return;
+    }
     if (action.type === "update") {
       await onUpdate(action.id);
       return;
@@ -109,7 +123,7 @@ export function CategoriesPage() {
 
         {openCreate ? (
           <form
-            onSubmit={onCreate}
+            onSubmit={onCreateSubmit}
             className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto]"
           >
             <input

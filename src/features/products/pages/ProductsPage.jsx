@@ -91,13 +91,7 @@ export function ProductsPage() {
     }
   };
 
-  const onCreate = async (event) => {
-    event.preventDefault();
-    if (!file) {
-      setError("Product image is required");
-      return;
-    }
-
+  const onCreate = async () => {
     setSaving(true);
     setError("");
     setMessage("");
@@ -169,12 +163,31 @@ export function ProductsPage() {
     }
   };
 
+  const onCreateSubmit = (event) => {
+    event.preventDefault();
+    if (!file) {
+      setError("Product image is required");
+      return;
+    }
+    setConfirmAction({
+      type: "create",
+      title: "Create product?",
+      message: `This will create a new product "${form.product_name}".`,
+      confirmLabel: "Yes, create",
+      tone: "warning",
+    });
+  };
+
   const closeConfirm = () => setConfirmAction(null);
 
   const onConfirmAction = async () => {
     if (!confirmAction) return;
     const action = confirmAction;
     closeConfirm();
+    if (action.type === "create") {
+      await onCreate();
+      return;
+    }
     if (action.type === "update") {
       await onUpdate(action.id);
       return;
@@ -195,7 +208,10 @@ export function ProductsPage() {
           {openCreate ? "Close Create Form" : "Create Product"}
         </button>
         {openCreate ? (
-          <form onSubmit={onCreate} className="mt-3 grid gap-3 sm:grid-cols-2">
+          <form
+            onSubmit={onCreateSubmit}
+            className="mt-3 grid gap-3 sm:grid-cols-2"
+          >
             <input
               name="product_name"
               value={form.product_name}

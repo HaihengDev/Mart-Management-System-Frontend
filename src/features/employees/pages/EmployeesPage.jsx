@@ -52,13 +52,7 @@ export function EmployeesPage() {
     }
   };
 
-  const onCreate = async (event) => {
-    event.preventDefault();
-    if (!file) {
-      setError("Employee image is required");
-      return;
-    }
-
+  const onCreate = async () => {
     setSaving(true);
     setError("");
     setMessage("");
@@ -122,12 +116,31 @@ export function EmployeesPage() {
     }
   };
 
+  const onCreateSubmit = (event) => {
+    event.preventDefault();
+    if (!file) {
+      setError("Employee image is required");
+      return;
+    }
+    setConfirmAction({
+      type: "create",
+      title: "Create employee?",
+      message: `This will create a new employee "${form.employee_name}".`,
+      confirmLabel: "Yes, create",
+      tone: "warning",
+    });
+  };
+
   const closeConfirm = () => setConfirmAction(null);
 
   const onConfirmAction = async () => {
     if (!confirmAction) return;
     const action = confirmAction;
     closeConfirm();
+    if (action.type === "create") {
+      await onCreate();
+      return;
+    }
     if (action.type === "update") {
       await onUpdate(action.id);
       return;
@@ -149,7 +162,10 @@ export function EmployeesPage() {
         </button>
 
         {openCreate ? (
-          <form onSubmit={onCreate} className="mt-3 grid gap-3 sm:grid-cols-2">
+          <form
+            onSubmit={onCreateSubmit}
+            className="mt-3 grid gap-3 sm:grid-cols-2"
+          >
             <input
               name="employee_name"
               value={form.employee_name}
