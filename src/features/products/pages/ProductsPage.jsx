@@ -1,30 +1,30 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   categoryApi,
   productApi,
   supplierApi,
-} from "../../../services/endpoints";
-import { DataState } from "../../../components/ui/DataState";
-import { PageCard } from "../../../components/ui/PageCard";
-import { ConfirmPanel } from "../../../components/ui/ConfirmPanel";
+} from '../../../services/endpoints';
+import { DataState } from '../../../components/ui/DataState';
+import { PageCard } from '../../../components/ui/PageCard';
+import { ConfirmPanel } from '../../../components/ui/ConfirmPanel';
 
 const defaultForm = {
-  product_name: "",
-  stock: "",
-  discount: "",
-  price: "",
-  expiry_date: "",
-  category_id: "",
-  supplier_id: "",
+  product_name: '',
+  stock: '',
+  discount: '',
+  price: '',
+  expiry_date: '',
+  category_id: '',
+  supplier_id: '',
 };
 
 export function ProductsPage() {
   const [openCreate, setOpenCreate] = useState(false);
   const [form, setForm] = useState(defaultForm);
   const [file, setFile] = useState(null);
-  const [filePreview, setFilePreview] = useState("");
-  const [editId, setEditId] = useState("");
+  const [filePreview, setFilePreview] = useState('');
+  const [editId, setEditId] = useState('');
   const [editForm, setEditForm] = useState(defaultForm);
   const [editFile, setEditFile] = useState(null);
   const [products, setProducts] = useState([]);
@@ -32,13 +32,13 @@ export function ProductsPage() {
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
   const [confirmAction, setConfirmAction] = useState(null);
 
   const load = async () => {
     setLoading(true);
-    setError("");
+    setError('');
     try {
       const [productRes, categoryRes, supplierRes] = await Promise.all([
         productApi.list(),
@@ -73,7 +73,7 @@ export function ProductsPage() {
         }));
       }
     } catch (err) {
-      setError(err?.response?.data?.message || "Failed to load products");
+      setError(err?.response?.data?.message || 'Failed to load products');
     } finally {
       setLoading(false);
     }
@@ -85,7 +85,7 @@ export function ProductsPage() {
 
   useEffect(() => {
     if (!file) {
-      setFilePreview("");
+      setFilePreview('');
       return;
     }
     const url = URL.createObjectURL(file);
@@ -93,9 +93,9 @@ export function ProductsPage() {
     return () => URL.revokeObjectURL(url);
   }, [file]);
 
-  const onChange = (event, target = "create") => {
+  const onChange = (event, target = 'create') => {
     const { name, value } = event.target;
-    if (target === "create") {
+    if (target === 'create') {
       setForm((prev) => ({ ...prev, [name]: value }));
     } else {
       setEditForm((prev) => ({ ...prev, [name]: value }));
@@ -104,22 +104,22 @@ export function ProductsPage() {
 
   const onCreate = async () => {
     setSaving(true);
-    setError("");
-    setMessage("");
+    setError('');
+    setMessage('');
 
     const data = new FormData();
-    data.append("file", file);
-    data.append("product_name", form.product_name);
-    data.append("stock", form.stock);
-    data.append("discount", form.discount || "0");
-    data.append("price", form.price);
-    data.append("expiry_date", form.expiry_date);
-    data.append("category_id", form.category_id);
-    data.append("supplier_id", form.supplier_id);
+    data.append('file', file);
+    data.append('product_name', form.product_name);
+    data.append('stock', form.stock);
+    data.append('discount', form.discount || '0');
+    data.append('price', form.price);
+    data.append('expiry_date', form.expiry_date);
+    data.append('category_id', form.category_id);
+    data.append('supplier_id', form.supplier_id);
 
     try {
       const response = await productApi.create(data);
-      setMessage(response?.data?.message || "Product created successfully");
+      setMessage(response?.data?.message || 'Product created successfully');
       setOpenCreate(false);
       setForm((prev) => ({
         ...defaultForm,
@@ -127,10 +127,10 @@ export function ProductsPage() {
         supplier_id: prev.supplier_id,
       }));
       setFile(null);
-      setFilePreview("");
+      setFilePreview('');
       await load();
     } catch (err) {
-      setError(err?.response?.data?.message || "Failed to create product");
+      setError(err?.response?.data?.message || 'Failed to create product');
     } finally {
       setSaving(false);
     }
@@ -138,55 +138,55 @@ export function ProductsPage() {
 
   const onUpdate = async (id) => {
     setSaving(true);
-    setMessage("");
-    setError("");
+    setMessage('');
+    setError('');
     const data = new FormData();
-    data.append("product_name", editForm.product_name);
-    data.append("stock", editForm.stock);
-    data.append("discount", editForm.discount || "0");
-    data.append("price", editForm.price);
-    data.append("expiry_date", editForm.expiry_date);
-    data.append("category_id", editForm.category_id);
-    data.append("supplier_id", editForm.supplier_id);
-    if (editFile) data.append("file", editFile);
+    data.append('product_name', editForm.product_name);
+    data.append('stock', editForm.stock);
+    data.append('discount', editForm.discount || '0');
+    data.append('price', editForm.price);
+    data.append('expiry_date', editForm.expiry_date);
+    data.append('category_id', editForm.category_id);
+    data.append('supplier_id', editForm.supplier_id);
+    if (editFile) data.append('file', editFile);
 
     try {
       await productApi.update(id, data);
-      setMessage("Product updated successfully");
-      setEditId("");
+      setMessage('Product updated successfully');
+      setEditId('');
       setEditFile(null);
       await load();
     } catch (err) {
-      setError(err?.response?.data?.message || "Failed to update product");
+      setError(err?.response?.data?.message || 'Failed to update product');
     } finally {
       setSaving(false);
     }
   };
 
   const onDelete = async (productId) => {
-    setMessage("");
-    setError("");
+    setMessage('');
+    setError('');
     try {
       await productApi.remove(productId);
-      setMessage("Product deleted successfully");
+      setMessage('Product deleted successfully');
       await load();
     } catch (err) {
-      setError(err?.response?.data?.message || "Failed to delete product");
+      setError(err?.response?.data?.message || 'Failed to delete product');
     }
   };
 
   const onCreateSubmit = (event) => {
     event.preventDefault();
     if (!file) {
-      setError("Product image is required");
+      setError('Product image is required');
       return;
     }
     setConfirmAction({
-      type: "create",
-      title: "Create product?",
+      type: 'create',
+      title: 'Create product?',
       message: `This will create a new product "${form.product_name}".`,
-      confirmLabel: "Yes, create",
-      tone: "warning",
+      confirmLabel: 'Yes, create',
+      tone: 'warning',
     });
   };
 
@@ -196,11 +196,11 @@ export function ProductsPage() {
     if (!confirmAction) return;
     const action = confirmAction;
     closeConfirm();
-    if (action.type === "create") {
+    if (action.type === 'create') {
       await onCreate();
       return;
     }
-    if (action.type === "update") {
+    if (action.type === 'update') {
       await onUpdate(action.id);
       return;
     }
@@ -217,7 +217,7 @@ export function ProductsPage() {
           onClick={() => setOpenCreate((prev) => !prev)}
           className="rounded-xl btn-primary px-4 py-2 text-sm font-semibold text-white"
         >
-          {openCreate ? "Close Create Form" : "Create Product"}
+          {openCreate ? 'Close Create Form' : 'Create Product'}
         </button>
         {openCreate ? (
           <form
@@ -315,7 +315,7 @@ export function ProductsPage() {
               disabled={saving}
               className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white sm:col-span-2"
             >
-              {saving ? "Saving..." : "Save"}
+              {saving ? 'Saving...' : 'Save'}
             </button>
           </form>
         ) : null}
@@ -347,7 +347,7 @@ export function ProductsPage() {
                     {product.product_name}
                   </h3>
                   <p className="text-sm text-slate-600">
-                    Price: {product.price}
+                    Price: {product.price}$
                   </p>
                   <p className="text-sm text-slate-600">
                     Stock: {product.stock}
@@ -363,13 +363,13 @@ export function ProductsPage() {
                       onClick={() => {
                         setEditId(product._id);
                         setEditForm({
-                          product_name: product.product_name || "",
-                          stock: String(product.stock || ""),
-                          discount: String(product.discount || ""),
-                          price: String(product.price || ""),
-                          expiry_date: (product.expiry_date || "").slice(0, 10),
-                          category_id: String(product.category_id || ""),
-                          supplier_id: String(product.supplier_id || ""),
+                          product_name: product.product_name || '',
+                          stock: String(product.stock || ''),
+                          discount: String(product.discount || ''),
+                          price: String(product.price || ''),
+                          expiry_date: (product.expiry_date || '').slice(0, 10),
+                          category_id: String(product.category_id || ''),
+                          supplier_id: String(product.supplier_id || ''),
                         });
                       }}
                       className="rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white"
@@ -379,12 +379,12 @@ export function ProductsPage() {
                     <button
                       onClick={() =>
                         setConfirmAction({
-                          type: "delete",
+                          type: 'delete',
                           id: product.product_id,
-                          title: "Delete product?",
+                          title: 'Delete product?',
                           message: `This action will permanently remove "${product.product_name}".`,
-                          confirmLabel: "Yes, delete",
-                          tone: "danger",
+                          confirmLabel: 'Yes, delete',
+                          tone: 'danger',
                         })
                       }
                       className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white"
@@ -397,41 +397,41 @@ export function ProductsPage() {
                       <input
                         name="product_name"
                         value={editForm.product_name}
-                        onChange={(e) => onChange(e, "edit")}
+                        onChange={(e) => onChange(e, 'edit')}
                         className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
                       />
                       <input
                         name="price"
                         type="number"
                         value={editForm.price}
-                        onChange={(e) => onChange(e, "edit")}
+                        onChange={(e) => onChange(e, 'edit')}
                         className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
                       />
                       <input
                         name="stock"
                         type="number"
                         value={editForm.stock}
-                        onChange={(e) => onChange(e, "edit")}
+                        onChange={(e) => onChange(e, 'edit')}
                         className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
                       />
                       <input
                         name="discount"
                         type="number"
                         value={editForm.discount}
-                        onChange={(e) => onChange(e, "edit")}
+                        onChange={(e) => onChange(e, 'edit')}
                         className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
                       />
                       <input
                         name="expiry_date"
                         type="date"
                         value={editForm.expiry_date}
-                        onChange={(e) => onChange(e, "edit")}
+                        onChange={(e) => onChange(e, 'edit')}
                         className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
                       />
                       <select
                         name="category_id"
                         value={editForm.category_id}
-                        onChange={(e) => onChange(e, "edit")}
+                        onChange={(e) => onChange(e, 'edit')}
                         className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
                       >
                         {categories.map((item) => (
@@ -443,7 +443,7 @@ export function ProductsPage() {
                       <select
                         name="supplier_id"
                         value={editForm.supplier_id}
-                        onChange={(e) => onChange(e, "edit")}
+                        onChange={(e) => onChange(e, 'edit')}
                         className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
                       >
                         {suppliers.map((item) => (
@@ -464,12 +464,12 @@ export function ProductsPage() {
                         <button
                           onClick={() =>
                             setConfirmAction({
-                              type: "update",
+                              type: 'update',
                               id: product._id,
-                              title: "Update product?",
+                              title: 'Update product?',
                               message: `This will save changes for "${product.product_name}".`,
-                              confirmLabel: "Yes, update",
-                              tone: "warning",
+                              confirmLabel: 'Yes, update',
+                              tone: 'warning',
                             })
                           }
                           className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white"
@@ -478,7 +478,7 @@ export function ProductsPage() {
                         </button>
                         <button
                           onClick={() => {
-                            setEditId("");
+                            setEditId('');
                             setEditFile(null);
                           }}
                           className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs"

@@ -3,6 +3,8 @@ import { employeeApi } from "../../../services/endpoints";
 import { DataState } from "../../../components/ui/DataState";
 import { PageCard } from "../../../components/ui/PageCard";
 import { ConfirmPanel } from "../../../components/ui/ConfirmPanel";
+import { useAuth } from "../../auth/components/AuthContext";
+import { getToken } from "../../../utils/storage";
 
 const defaultForm = {
   employee_name: "",
@@ -12,6 +14,7 @@ const defaultForm = {
 };
 
 export function EmployeesPage() {
+  const { user } = useAuth();
   const [openCreate, setOpenCreate] = useState(false);
   const [form, setForm] = useState(defaultForm);
   const [file, setFile] = useState(null);
@@ -26,6 +29,55 @@ export function EmployeesPage() {
   const [message, setMessage] = useState("");
   const [oneTimeCredential, setOneTimeCredential] = useState(null);
   const [confirmAction, setConfirmAction] = useState(null);
+
+  const getTokenPayload = () => {
+    try {
+      const token = getToken();
+      if (!token) return {};
+      return JSON.parse(atob(token.split(".")[1])) || {};
+    } catch {
+      return {};
+    }
+  };
+
+  const normalizeValue = (value) =>
+    value === undefined || value === null ? "" : String(value).trim().toLowerCase();
+
+  const currentIdentitySet = (() => {
+    const payload = getTokenPayload();
+    const values = [
+      user?._id,
+      user?.id,
+      user?.employee_id,
+      user?.user_id,
+      user?.username,
+      user?.employee_name,
+      payload?._id,
+      payload?.id,
+      payload?.employee_id,
+      payload?.user_id,
+      payload?.username,
+      payload?.employee_name,
+      payload?.sub,
+    ]
+      .map(normalizeValue)
+      .filter(Boolean);
+    return new Set(values);
+  })();
+
+  const isSelfEmployee = (employee) => {
+    const employeeIdentityValues = [
+      employee?._id,
+      employee?.id,
+      employee?.employee_id,
+      employee?.user_id,
+      employee?.username,
+      employee?.employee_name,
+    ]
+      .map(normalizeValue)
+      .filter(Boolean);
+    return employeeIdentityValues.some((value) => currentIdentitySet.has(value));
+  };
 
   const load = async () => {
     setLoading(true);
@@ -116,11 +168,15 @@ export function EmployeesPage() {
     }
   };
 
-  const onDelete = async (id) => {
+  const onDelete = async (employee) => {
+    if (isSelfEmployee(employee)) {
+      setError("You cannot delete your own account.");
+      return;
+    }
     setMessage("");
     setError("");
     try {
-      await employeeApi.remove(id);
+      await employeeApi.remove(employee._id);
       setMessage("Employee deleted successfully");
       await load();
     } catch (err) {
@@ -157,7 +213,7 @@ export function EmployeesPage() {
       await onUpdate(action.id);
       return;
     }
-    await onDelete(action.id);
+    await onDelete(action.employee);
   };
 
   return (
@@ -264,7 +320,7 @@ export function EmployeesPage() {
       <PageCard title="Employees" subtitle="List with employee image">
         <DataState loading={loading} error={error} empty={items.length === 0}>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {items.map((employee) => (
+            {items.filter((employee) => !isSelfEmployee(employee)).map((employee) => (
               <article
                 key={employee._id}
                 className="rounded-xl border border-slate-200 bg-white p-3"
@@ -305,7 +361,7 @@ export function EmployeesPage() {
                     onClick={() =>
                       setConfirmAction({
                         type: "delete",
-                        id: employee._id,
+                        employee,
                         title: "Delete employee?",
                         message: `This action will permanently remove "${employee.employee_name}".`,
                         confirmLabel: "Yes, delete",

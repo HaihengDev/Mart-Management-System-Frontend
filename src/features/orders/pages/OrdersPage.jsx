@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
-import { orderApi, productApi } from "../../../services/endpoints";
-import { DataState } from "../../../components/ui/DataState";
-import { PageCard } from "../../../components/ui/PageCard";
-import { getToken } from "../../../utils/storage";
+import { useEffect, useMemo, useState } from 'react';
+import { orderApi, productApi } from '../../../services/endpoints';
+import { DataState } from '../../../components/ui/DataState';
+import { PageCard } from '../../../components/ui/PageCard';
+import { getToken } from '../../../utils/storage';
 
 const createOrderItem = (productId, discount = 0) => ({
   product_id: String(productId),
@@ -13,25 +13,25 @@ const createOrderItem = (productId, discount = 0) => ({
 function getEmployeeIdFromToken() {
   try {
     const token = getToken();
-    if (!token) return "";
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    return payload?.id ? String(payload.id) : "";
+    if (!token) return '';
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload?.id ? String(payload.id) : '';
   } catch {
-    return "";
+    return '';
   }
 }
 
 export function OrdersPage() {
   const [openCreate, setOpenCreate] = useState(false);
   const [employeeId, setEmployeeId] = useState(getEmployeeIdFromToken());
-  const [status, setStatus] = useState("Cash");
+  const [status, setStatus] = useState('Cash');
   const [items, setItems] = useState([]);
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
 
   const productMap = useMemo(() => {
     const map = new Map();
@@ -39,9 +39,29 @@ export function OrdersPage() {
     return map;
   }, [products]);
 
+  const orderPreview = useMemo(() => {
+    const lines = items.map((item) => {
+      const product = productMap.get(String(item.product_id));
+      const price = Number(product?.price || 0);
+      const quantity = Number(item.quantity || 0);
+      const discount = Number(item.discount || 0);
+      const lineTotal = price * quantity * (1 - discount / 100);
+      return {
+        ...item,
+        product,
+        price,
+        quantity,
+        discount,
+        lineTotal,
+      };
+    });
+    const grandTotal = lines.reduce((sum, line) => sum + line.lineTotal, 0);
+    return { lines, grandTotal };
+  }, [items, productMap]);
+
   const load = async () => {
     setLoading(true);
-    setError("");
+    setError('');
     try {
       const [ordersRes, productsRes] = await Promise.all([
         orderApi.list(),
@@ -50,7 +70,7 @@ export function OrdersPage() {
       setOrders(Array.isArray(ordersRes?.data) ? ordersRes.data : []);
       setProducts(Array.isArray(productsRes?.data) ? productsRes.data : []);
     } catch (err) {
-      setError(err?.response?.data?.message || "Failed to load order data");
+      setError(err?.response?.data?.message || 'Failed to load order data');
     } finally {
       setLoading(false);
     }
@@ -88,8 +108,8 @@ export function OrdersPage() {
   const onCreateOrder = async (event) => {
     event.preventDefault();
     setSaving(true);
-    setMessage("");
-    setError("");
+    setMessage('');
+    setError('');
 
     const payload = {
       employee_id: Number(employeeId),
@@ -105,7 +125,7 @@ export function OrdersPage() {
 
     try {
       const res = await orderApi.create(payload);
-      setMessage(res?.data?.message || "Order created successfully");
+      setMessage(res?.data?.message || 'Order created successfully');
       setOpenCreate(false);
       setItems([]);
       await load();
@@ -113,7 +133,7 @@ export function OrdersPage() {
       setError(
         err?.response?.data?.result ||
           err?.response?.data?.message ||
-          "Failed to create order",
+          'Failed to create order',
       );
     } finally {
       setSaving(false);
@@ -130,7 +150,7 @@ export function OrdersPage() {
           onClick={() => setOpenCreate((prev) => !prev)}
           className="rounded-xl btn-primary px-4 py-2 text-sm font-semibold text-white"
         >
-          {openCreate ? "Close Create Form" : "Create Order"}
+          {openCreate ? 'Close Create Form' : 'Create Order'}
         </button>
 
         {openCreate ? (
@@ -156,7 +176,9 @@ export function OrdersPage() {
 
             <div className="grid gap-3 lg:grid-cols-2">
               <section className="panel-glass rounded-xl p-3">
-                <p className="text-main mb-2 text-sm font-semibold">All Products</p>
+                <p className="text-main mb-2 text-sm font-semibold">
+                  All Products
+                </p>
                 <div className="max-h-96 space-y-2 overflow-y-auto pr-1">
                   {products.map((product) => (
                     <div
@@ -168,7 +190,7 @@ export function OrdersPage() {
                           {product.product_name}
                         </p>
                         <p className="text-soft text-xs">
-                          Stock: {product.stock} | Price: {product.price}
+                          Stock: {product.stock} | Price: {product.price}$
                         </p>
                       </div>
                       <button
@@ -184,10 +206,12 @@ export function OrdersPage() {
               </section>
 
               <section className="panel-glass rounded-xl p-3">
-                <p className="text-main mb-2 text-sm font-semibold">Order Items</p>
+                <p className="text-main mb-2 text-sm font-semibold">
+                  Order Items
+                </p>
                 <div className="space-y-2">
-                  {items.map((item, index) => {
-                    const selectedProduct = productMap.get(String(item.product_id));
+                  {orderPreview.lines.map((item, index) => {
+                    const selectedProduct = item.product;
                     return (
                       <div
                         key={`${item.product_id}-${index}`}
@@ -195,10 +219,13 @@ export function OrdersPage() {
                       >
                         <div>
                           <p className="text-main text-sm font-medium">
-                            {selectedProduct?.product_name || "Unknown product"}
+                            {selectedProduct?.product_name || 'Unknown product'}
                           </p>
                           <p className="text-soft text-xs">
                             Unit price: {selectedProduct?.price ?? 0}
+                          </p>
+                          <p className="text-soft text-xs">
+                            Line total: {item.lineTotal.toFixed(2)}
                           </p>
                         </div>
                         <input
@@ -206,7 +233,7 @@ export function OrdersPage() {
                           min="1"
                           value={item.quantity}
                           onChange={(e) =>
-                            updateItem(index, "quantity", e.target.value)
+                            updateItem(index, 'quantity', e.target.value)
                           }
                           placeholder="Qty"
                           className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
@@ -217,7 +244,7 @@ export function OrdersPage() {
                           max="100"
                           value={item.discount}
                           onChange={(e) =>
-                            updateItem(index, "discount", e.target.value)
+                            updateItem(index, 'discount', e.target.value)
                           }
                           placeholder="Discount %"
                           className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
@@ -237,6 +264,13 @@ export function OrdersPage() {
                       No products added yet. Click `Add` from the product list.
                     </p>
                   ) : null}
+                  {items.length > 0 ? (
+                    <div className="mt-2 rounded-lg border border-slate-200 p-2">
+                      <p className="text-main text-sm font-semibold">
+                        Grand Total: {orderPreview.grandTotal.toFixed(2)}
+                      </p>
+                    </div>
+                  ) : null}
                 </div>
               </section>
             </div>
@@ -246,7 +280,7 @@ export function OrdersPage() {
                 disabled={saving}
                 className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white"
               >
-                {saving ? "Creating..." : "Submit Order"}
+                {saving ? 'Creating...' : 'Submit Order'}
               </button>
             </div>
           </form>
@@ -268,7 +302,7 @@ export function OrdersPage() {
                     Order #{order.order_id || order._id}
                   </p>
                   <p className="text-soft text-xs">
-                    {order.status} | Total: {order.grand_total || 0}
+                    {order.status} | Total: {order.grand_total.toFixed(2) || 0}$
                   </p>
                 </div>
                 <p className="text-soft mt-1 text-xs">
@@ -290,9 +324,11 @@ export function OrdersPage() {
                         <tr key={idx} className="text-main">
                           <td className="py-1 pr-3">{item.product_name}</td>
                           <td className="py-1 pr-3">{item.quantity}</td>
-                          <td className="py-1 pr-3">{item.price}</td>
+                          <td className="py-1 pr-3">{item.price}$</td>
                           <td className="py-1 pr-3">{item.discount}%</td>
-                          <td className="py-1 pr-3">{item.total || 0}</td>
+                          <td className="py-1 pr-3">
+                            {item.total.toFixed(2) || 0}$
+                          </td>
                         </tr>
                       ))}
                     </tbody>
