@@ -7,6 +7,7 @@ import {
 } from "../../../services/endpoints";
 import { DataState } from "../../../components/ui/DataState";
 import { PageCard } from "../../../components/ui/PageCard";
+import { ConfirmPanel } from "../../../components/ui/ConfirmPanel";
 
 const defaultForm = {
   product_name: "",
@@ -32,6 +33,7 @@ export function ProductsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [confirmAction, setConfirmAction] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -165,6 +167,19 @@ export function ProductsPage() {
     } catch (err) {
       setError(err?.response?.data?.message || "Failed to delete product");
     }
+  };
+
+  const closeConfirm = () => setConfirmAction(null);
+
+  const onConfirmAction = async () => {
+    if (!confirmAction) return;
+    const action = confirmAction;
+    closeConfirm();
+    if (action.type === "update") {
+      await onUpdate(action.id);
+      return;
+    }
+    await onDelete(action.id);
   };
 
   return (
@@ -324,7 +339,16 @@ export function ProductsPage() {
                       Edit
                     </button>
                     <button
-                      onClick={() => onDelete(product.product_id)}
+                      onClick={() =>
+                        setConfirmAction({
+                          type: "delete",
+                          id: product.product_id,
+                          title: "Delete product?",
+                          message: `This action will permanently remove "${product.product_name}".`,
+                          confirmLabel: "Yes, delete",
+                          tone: "danger",
+                        })
+                      }
                       className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white"
                     >
                       Delete
@@ -400,7 +424,16 @@ export function ProductsPage() {
                       />
                       <div className="flex gap-2">
                         <button
-                          onClick={() => onUpdate(product._id)}
+                          onClick={() =>
+                            setConfirmAction({
+                              type: "update",
+                              id: product._id,
+                              title: "Update product?",
+                              message: `This will save changes for "${product.product_name}".`,
+                              confirmLabel: "Yes, update",
+                              tone: "warning",
+                            })
+                          }
                           className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white"
                         >
                           Update
@@ -423,6 +456,15 @@ export function ProductsPage() {
           </div>
         </DataState>
       </PageCard>
+      <ConfirmPanel
+        open={Boolean(confirmAction)}
+        title={confirmAction?.title}
+        message={confirmAction?.message}
+        confirmLabel={confirmAction?.confirmLabel}
+        tone={confirmAction?.tone}
+        onCancel={closeConfirm}
+        onConfirm={onConfirmAction}
+      />
     </div>
   );
 }

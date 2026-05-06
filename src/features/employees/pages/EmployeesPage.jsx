@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { employeeApi } from "../../../services/endpoints";
 import { DataState } from "../../../components/ui/DataState";
 import { PageCard } from "../../../components/ui/PageCard";
+import { ConfirmPanel } from "../../../components/ui/ConfirmPanel";
 
 const defaultForm = {
   employee_name: "",
@@ -23,6 +24,7 @@ export function EmployeesPage() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [oneTimeCredential, setOneTimeCredential] = useState(null);
+  const [confirmAction, setConfirmAction] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -118,6 +120,19 @@ export function EmployeesPage() {
     } catch (err) {
       setError(err?.response?.data?.message || "Failed to delete employee");
     }
+  };
+
+  const closeConfirm = () => setConfirmAction(null);
+
+  const onConfirmAction = async () => {
+    if (!confirmAction) return;
+    const action = confirmAction;
+    closeConfirm();
+    if (action.type === "update") {
+      await onUpdate(action.id);
+      return;
+    }
+    await onDelete(action.id);
   };
 
   return (
@@ -249,7 +264,16 @@ export function EmployeesPage() {
                     Edit
                   </button>
                   <button
-                    onClick={() => onDelete(employee._id)}
+                    onClick={() =>
+                      setConfirmAction({
+                        type: "delete",
+                        id: employee._id,
+                        title: "Delete employee?",
+                        message: `This action will permanently remove "${employee.employee_name}".`,
+                        confirmLabel: "Yes, delete",
+                        tone: "danger",
+                      })
+                    }
                     className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white"
                   >
                     Delete
@@ -296,7 +320,16 @@ export function EmployeesPage() {
                     />
                     <div className="flex gap-2">
                       <button
-                        onClick={() => onUpdate(employee._id)}
+                        onClick={() =>
+                          setConfirmAction({
+                            type: "update",
+                            id: employee._id,
+                            title: "Update employee?",
+                            message: `This will save changes for "${employee.employee_name}".`,
+                            confirmLabel: "Yes, update",
+                            tone: "warning",
+                          })
+                        }
                         className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white"
                       >
                         Update
@@ -318,6 +351,15 @@ export function EmployeesPage() {
           </div>
         </DataState>
       </PageCard>
+      <ConfirmPanel
+        open={Boolean(confirmAction)}
+        title={confirmAction?.title}
+        message={confirmAction?.message}
+        confirmLabel={confirmAction?.confirmLabel}
+        tone={confirmAction?.tone}
+        onCancel={closeConfirm}
+        onConfirm={onConfirmAction}
+      />
     </div>
   );
 }

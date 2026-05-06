@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supplierApi } from "../../../services/endpoints";
 import { DataState } from "../../../components/ui/DataState";
 import { PageCard } from "../../../components/ui/PageCard";
+import { ConfirmPanel } from "../../../components/ui/ConfirmPanel";
 
 const defaultForm = {
   supplier_name: "",
@@ -20,6 +21,7 @@ export function SuppliersPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [confirmAction, setConfirmAction] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -92,6 +94,19 @@ export function SuppliersPage() {
     } catch (err) {
       setError(err?.response?.data?.message || "Failed to delete supplier");
     }
+  };
+
+  const closeConfirm = () => setConfirmAction(null);
+
+  const onConfirmAction = async () => {
+    if (!confirmAction) return;
+    const action = confirmAction;
+    closeConfirm();
+    if (action.type === "update") {
+      await onUpdate(action.id);
+      return;
+    }
+    await onDelete(action.id);
   };
 
   return (
@@ -193,7 +208,16 @@ export function SuppliersPage() {
                     />
                     <div className="flex gap-2 sm:col-span-2">
                       <button
-                        onClick={() => onUpdate(item._id)}
+                        onClick={() =>
+                          setConfirmAction({
+                            type: "update",
+                            id: item._id,
+                            title: "Update supplier?",
+                            message: `This will save changes for "${item.supplier_name}".`,
+                            confirmLabel: "Yes, update",
+                            tone: "warning",
+                          })
+                        }
                         className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white"
                       >
                         Update
@@ -233,7 +257,16 @@ export function SuppliersPage() {
                         Edit
                       </button>
                       <button
-                        onClick={() => onDelete(item._id)}
+                        onClick={() =>
+                          setConfirmAction({
+                            type: "delete",
+                            id: item._id,
+                            title: "Delete supplier?",
+                            message: `This action will permanently remove "${item.supplier_name}".`,
+                            confirmLabel: "Yes, delete",
+                            tone: "danger",
+                          })
+                        }
                         className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white"
                       >
                         Delete
@@ -246,6 +279,15 @@ export function SuppliersPage() {
           </div>
         </DataState>
       </PageCard>
+      <ConfirmPanel
+        open={Boolean(confirmAction)}
+        title={confirmAction?.title}
+        message={confirmAction?.message}
+        confirmLabel={confirmAction?.confirmLabel}
+        tone={confirmAction?.tone}
+        onCancel={closeConfirm}
+        onConfirm={onConfirmAction}
+      />
     </div>
   );
 }
