@@ -15,6 +15,7 @@ export function EmployeesPage() {
   const [openCreate, setOpenCreate] = useState(false);
   const [form, setForm] = useState(defaultForm);
   const [file, setFile] = useState(null);
+  const [filePreview, setFilePreview] = useState("");
   const [editId, setEditId] = useState("");
   const [editForm, setEditForm] = useState(defaultForm);
   const [editFile, setEditFile] = useState(null);
@@ -42,6 +43,16 @@ export function EmployeesPage() {
   useEffect(() => {
     load();
   }, []);
+
+  useEffect(() => {
+    if (!file) {
+      setFilePreview("");
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    setFilePreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
 
   const onChange = (event, target = "create") => {
     const { name, value } = event.target;
@@ -71,6 +82,7 @@ export function EmployeesPage() {
       setOneTimeCredential(response?.data?.user || null);
       setForm(defaultForm);
       setFile(null);
+      setFilePreview("");
       setOpenCreate(false);
       await load();
     } catch (err) {
@@ -208,6 +220,16 @@ export function EmployeesPage() {
               className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm sm:col-span-2"
               required
             />
+            {filePreview ? (
+              <div className="sm:col-span-2">
+                <p className="mb-1 text-xs text-soft">Image preview</p>
+                <img
+                  src={filePreview}
+                  alt="New employee preview"
+                  className="h-40 w-full max-w-xs rounded-xl border border-slate-200 object-cover"
+                />
+              </div>
+            ) : null}
             <button
               disabled={saving}
               className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white sm:col-span-2"

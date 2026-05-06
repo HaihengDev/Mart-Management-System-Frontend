@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { supplierApi } from "../../../services/endpoints";
 import { DataState } from "../../../components/ui/DataState";
 import { PageCard } from "../../../components/ui/PageCard";
@@ -259,6 +260,12 @@ export function SuppliersPage() {
                       <p className="text-xs text-slate-500">{item.address}</p>
                     </div>
                     <div className="flex gap-2">
+                      <Link
+                        to={`/suppliers/${item.supplier_id}/products`}
+                        className="rounded-lg btn-primary px-3 py-1.5 text-xs font-semibold text-white"
+                      >
+                        View Full
+                      </Link>
                       <button
                         onClick={() => {
                           setEditId(item._id);
