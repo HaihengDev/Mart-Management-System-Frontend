@@ -1,20 +1,10 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Home from './pages/Home';
-import Categories from './pages/Categories';
-import Error from './pages/Error';
-import Header from './components/Header.jsx';
+import { AppProvider } from './app/AppProvider';
+import { AppRoutes } from './routes/AppRoutes';
 
-const App = () => {
+export default function App() {
   return (
-    <BrowserRouter>
-      <Header />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/categories" element={<Categories />} />
-        <Route path="*" element={<Error />} />
-      </Routes>
-    </BrowserRouter>
+    <AppProvider>
+      <AppRoutes />
+    </AppProvider>
   );
-};
-
-export default App;
+}

@@ -1,5 +1,108 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
-html {
-  scroll-behavior: smooth;
+:root {
+  --bg-main: #f3f8ff;
+  --bg-grad-1: rgba(255, 153, 180, 0.25);
+  --bg-grad-2: rgba(111, 187, 255, 0.28);
+  --text-main: #10213d;
+  --text-soft: #4c5e82;
+  --line: rgba(139, 165, 209, 0.34);
+  --glass: rgba(255, 255, 255, 0.52);
+  --glass-strong: rgba(255, 255, 255, 0.7);
+  --shadow: 0 14px 40px rgba(27, 63, 122, 0.16);
+  --chip: rgba(255, 255, 255, 0.38);
+  --accent: #2563eb;
+}
+
+:root[data-theme="dark"] {
+  --bg-main: #071225;
+  --bg-grad-1: rgba(255, 84, 125, 0.2);
+  --bg-grad-2: rgba(56, 141, 255, 0.22);
+  --text-main: #e7f0ff;
+  --text-soft: #a3b8dc;
+  --line: rgba(113, 141, 187, 0.34);
+  --glass: rgba(14, 27, 50, 0.56);
+  --glass-strong: rgba(18, 33, 60, 0.75);
+  --shadow: 0 18px 45px rgba(3, 8, 20, 0.5);
+  --chip: rgba(28, 46, 80, 0.55);
+  --accent: #60a5fa;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--text-main);
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  background:
+    radial-gradient(circle at 10% 0%, var(--bg-grad-1) 0%, transparent 36%),
+    radial-gradient(circle at 100% 100%, var(--bg-grad-2) 0%, transparent 37%),
+    var(--bg-main);
+}
+
+input,
+select,
+textarea {
+  background: var(--glass-strong);
+  color: var(--text-main);
+  border: 1px solid var(--line);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-soft);
+}
+
+.app-glass {
+  background: var(--glass);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(16px);
+}
+
+.panel-glass {
+  background: var(--glass-strong);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(14px);
+}
+
+.text-main {
+  color: var(--text-main);
+}
+
+.text-soft {
+  color: var(--text-soft);
+}
+
+.btn-glass {
+  background: var(--chip);
+  color: var(--text-main);
+  border: 1px solid var(--line);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: white;
+}
+
+/* Force leftover Tailwind slate/white utility classes to respect app theme tokens */
+[class*="text-slate-"] {
+  color: var(--text-soft) !important;
+}
+
+[class*="text-slate-9"] {
+  color: var(--text-main) !important;
+}
+
+[class*="border-slate-"] {
+  border-color: var(--line) !important;
+}
+
+[class*="bg-slate-"],
+[class*="bg-white"] {
+  background: var(--glass-strong) !important;
 }
