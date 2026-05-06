@@ -4,6 +4,7 @@ import { useAuth } from '../components/AuthContext';
 
 export function LoginPage() {
   const [form, setForm] = useState({ username: '', password: '' });
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
@@ -52,15 +53,28 @@ export function LoginPage() {
             className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm outline-none ring-0 transition focus:border-slate-500"
             required
           />
-          <input
-            name="password"
-            type="password"
-            placeholder="Password"
-            value={form.password}
-            onChange={onChange}
-            className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm outline-none ring-0 transition focus:border-slate-500"
-            required
-          />
+          <div className="relative">
+            <input
+              name="password"
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Password"
+              value={form.password}
+              onChange={onChange}
+              className="w-full rounded-xl border border-slate-300 px-4 py-2.5 pr-16 text-sm outline-none ring-0 transition focus:border-slate-500"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-600 hover:text-slate-900 cursor-pointer"
+            >
+              {showPassword ? (
+                <i class="fa-solid fa-eye-slash"></i>
+              ) : (
+                <i class="fa-solid fa-eye"></i>
+              )}
+            </button>
+          </div>
         </div>
 
         {error ? <p className="mt-3 text-sm text-rose-500">{error}</p> : null}
